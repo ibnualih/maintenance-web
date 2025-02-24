@@ -79,14 +79,14 @@ Route::middleware(['auth'])->group(function () {
         // Grup rute untuk Strainer
         // Route::resource('strainer', StrainerController::class);
         Route::resource('strainer', StrainerController::class)->except(['show']);
-        Route::get('/get-unit-codes/{model}', [StrainerController::class, 'getUnitCodes']);
+        // Route::get('/get-unit-codes/{model}', [StrainerController::class, 'getUnitCodes']);
         Route::get('strainer/resume', [StrainerController::class, 'resume'])->name('strainer.resume');
         Route::put('strainer/approve/{id}', [StrainerController::class, 'approve'])->name('strainer.approve');
         Route::put('strainer/reject/{id}', [StrainerController::class, 'reject'])->name('strainer.reject');
 
         // Grup rute untuk Cutting Filter
         Route::resource('cutting_filters', CuttingFilterController::class);
-        Route::get('/get-unit-codes/{model}', [CuttingFilterController::class, 'getUnitCodes']);
+        // Route::get('/get-unit-codes/{model}', [CuttingFilterController::class, 'getUnitCodes']);
         Route::get('cutting-filters/resume', [CuttingFilterController::class, 'resume'])->name('cutting_filters.resume');
         Route::put('cutting-filters/approve/{id}', [CuttingFilterController::class, 'approve'])->name('filter.approve');
         Route::put('cutting-filters/reject/{id}', [CuttingFilterController::class, 'reject'])->name('filter.reject');

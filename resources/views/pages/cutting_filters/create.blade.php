@@ -119,51 +119,38 @@
         flatpickr("#last_update", {
             dateFormat: "d-m-Y", // Format tanggal
             allowInput: true, // Memungkinkan pengguna mengetik manual
+            defaultDate: document.getElementById('last_update').value // Set default date
         });
     });
 
+    // Data unit yang dikirim dari controller, digunakan untuk filtering unit_code berdasarkan unit_model
+    const allUnits = @json($allUnits);
 
-    document.addEventListener('DOMContentLoaded', function () {
-    const unitModelSelect = document.getElementById('unit_model');
-    const unitCodeSelect = document.getElementById('unit_code');
+    document.addEventListener("DOMContentLoaded", function() {
+        const unitModelSelect = document.getElementById("unit_model");
+        const unitCodeSelect = document.getElementById("unit_code");
 
-    unitModelSelect.addEventListener('change', function () {
-        const selectedModel = this.value;
+        // Event listener untuk perubahan di dropdown unit_model
+        unitModelSelect.addEventListener("change", function() {
+            const selectedModel = this.value;
 
-        // Reset dropdown unit_code
-        unitCodeSelect.innerHTML = '<option value="">-- Select Unit Code --</option>';
-        unitCodeSelect.disabled = true;
+            // Hapus semua opsi dari dropdown unit_code
+            unitCodeSelect.innerHTML = '<option value="">-- Select Unit Code --</option>';
+            unitCodeSelect.disabled = true;
 
-        if (!selectedModel) return;
+            // Filter unit_code berdasarkan unit_model yang dipilih
+            const filteredUnits = allUnits.filter(unit => unit.unit === selectedModel);
 
-        // Fetch unit codes from server
-        fetch(`/get-unit-codes/${selectedModel}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Check if unit codes are available
-                if (data.unitCodes && data.unitCodes.length > 0) {
-                    unitCodeSelect.disabled = false;
-                    data.unitCodes.forEach(code => {
-                        const option = document.createElement('option');
-                        option.value = code;
-                        option.textContent = code;
-                        unitCodeSelect.appendChild(option);
-                    });
-                } else {
-                    unitCodeSelect.disabled = true;
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching unit codes:', error);
-                alert('Failed to fetch unit codes. Please try again later.');
-            });
+            if (filteredUnits.length > 0) {
+                unitCodeSelect.disabled = false;
+                filteredUnits.forEach(unit => {
+                    const option = document.createElement("option");
+                    option.value = unit.code_unit;
+                    option.textContent = unit.code_unit;
+                    unitCodeSelect.appendChild(option);
+                });
+            }
+        });
     });
-});
-
 </script>
 @endpush

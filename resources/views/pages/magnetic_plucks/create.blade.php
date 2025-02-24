@@ -94,71 +94,51 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         flatpickr("#last_update", {
-            dateFormat: "d-m-Y", // Format tanggal
-            allowInput: true, // Memungkinkan pengguna mengetik manual
+            dateFormat: "d-m-Y",
+            allowInput: true,
+            defaultDate: document.getElementById('last_update').value
         });
     });
 
-    document.addEventListener('DOMContentLoaded', function () {
-    const unitModelSelect = document.getElementById('unit_model');
-    const unitCodeSelect = document.getElementById('unit_code');
-    const componentSelect = document.getElementById('component');
+    const allUnits = @json($allUnits);
 
-    const componentsMap = {
-        'PC2000-8': ['Final Drive LH', 'Final Drive RH'],
-        'PC1250-8': ['Final Drive LH', 'Final Drive RH'],
-        'PC850-8': ['Final Drive LH', 'Final Drive RH'],
-        'D155-6R': ['Final Drive LH', 'Final Drive RH'],
-        'HD785-7': ['Final Drive LH', 'Final Drive RH', 'Differential'],
-        'GD825-2': ['Differential'],
-        'GD755-5': ['Differential'],
-    };
+    document.addEventListener("DOMContentLoaded", function() {
+        const unitModelSelect = document.getElementById("unit_model");
+        const unitCodeSelect = document.getElementById("unit_code");
+        const componentSelect = document.getElementById("component");
 
-    unitModelSelect.addEventListener('change', function () {
-        const selectedModel = this.value;
+        const componentsMap = {
+            'PC2000-8': ['Final Drive LH', 'Final Drive RH'],
+            'PC1250-8': ['Final Drive LH', 'Final Drive RH'],
+            'PC850-8': ['Final Drive LH', 'Final Drive RH'],
+            'D155-6R': ['Final Drive LH', 'Final Drive RH'],
+            'HD785-7': ['Final Drive LH', 'Final Drive RH', 'Differential'],
+            'GD825-2': ['Differential'],
+            'GD755-5': ['Differential'],
+        };
 
-        // Reset and disable dropdowns
-        unitCodeSelect.innerHTML = '<option value="">-- Select Unit Code --</option>';
-        componentSelect.innerHTML = '<option value="">-- Select Component --</option>';
-        unitCodeSelect.disabled = true;
-        componentSelect.disabled = true;
+        unitModelSelect.addEventListener("change", function() {
+            const selectedModel = this.value;
+            unitCodeSelect.innerHTML = '<option value="">Select Unit Code</option>';
+            componentSelect.innerHTML = '<option value="">Select Component</option>';
 
-        if (!selectedModel) return;
-
-        // Fetch unit codes based on selected model
-        fetch(`/get-unit-codes/${selectedModel}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch unit codes');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.unitCodes.length > 0) {
-                    unitCodeSelect.disabled = false;
-                    data.unitCodes.forEach(function (code) {
-                        const option = document.createElement('option');
-                        option.value = code;
-                        option.textContent = code;
-                        unitCodeSelect.appendChild(option);
-                    });
-                }
-
-                if (componentsMap[selectedModel]) {
-                    componentSelect.disabled = false;
-                    componentsMap[selectedModel].forEach(function (component) {
-                        const option = document.createElement('option');
-                        option.value = component;
-                        option.textContent = component;
-                        componentSelect.appendChild(option);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching unit codes:', error);
-                alert('Failed to fetch unit codes. Please try again.');
+            const filteredUnits = allUnits.filter(unit => unit.unit === selectedModel);
+            filteredUnits.forEach(unit => {
+                const option = document.createElement("option");
+                option.value = unit.code_unit;
+                option.textContent = unit.code_unit;
+                unitCodeSelect.appendChild(option);
             });
+
+            if (componentsMap[selectedModel]) {
+                componentsMap[selectedModel].forEach(component => {
+                    const option = document.createElement("option");
+                    option.value = component;
+                    option.textContent = component;
+                    componentSelect.appendChild(option);
+                });
+            }
+        });
     });
-});
 </script>
 @endpush

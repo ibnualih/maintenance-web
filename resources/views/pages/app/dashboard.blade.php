@@ -47,11 +47,11 @@
                         <!-- Menu Cards -->
                         @php
                             $menus = [
-                                ['title' => 'Magnetic Plug', 'link' => '/magnetic_plucks/create'],
-                                ['title' => 'Cutting Filter', 'link' => '/cutting_filters/create'],
-                                ['title' => 'Strainer', 'link' => '/strainer/create'],
-                                ['title' => 'Swing Circle', 'link' => '/swing_circles/create'],
-                                ['title' => 'Wheel Brake', 'link' => '/wheel-brakes/create'],
+                                ['title' => 'Magnetic Plug', 'link' => 'cbm/magnetic_plucks/create'],
+                                ['title' => 'Cutting Filter', 'link' => 'cbm/cutting_filters/create'],
+                                ['title' => 'Strainer', 'link' => 'cbm/strainer/create'],
+                                ['title' => 'Swing Circle', 'link' => 'cbm/swing_circles/create'],
+                                ['title' => 'Wheel Brake', 'link' => 'cbm/wheel-brakes/create'],
                             ];
                         @endphp
                         @foreach ($menus as $menu)

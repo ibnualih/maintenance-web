@@ -16,6 +16,17 @@
         <div class="section-body">
             <div class="card">
                 <div class="card-body">
+                    <form method="GET" action="{{ route('wheel-brakes.resume') }}" class="mb-3">
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <input type="text" name="unit_code" class="form-control" placeholder="Search Unit Code" value="{{ request('unit_code') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                                <a href="{{ route('wheel-brakes.resume') }}" class="btn btn-secondary">Reset</a>
+                            </div>
+                        </div>
+                    </form>
                     <div class="table-responsive">
                         {{-- <h1 class="mb-4">Resume Wheel Brakes (Approved Only)</h1> --}}
                         <table class="table table-striped text-center align-middle custom-table">
@@ -24,35 +35,37 @@
                                     <th rowspan="3">No</th>
                                     <th rowspan="3">Unit Code</th>
                                     <th rowspan="3">HM</th>
-                                    <th rowspan="3">
-                                        ED
-                                        <a href="{{ route('wheel-brakes.index', array_merge(request()->all(), ['sort_ed' => 'asc'])) }}" class="btn btn-link p-0">
+                                    <th rowspan="3">ED
+                                        <a href="{{ route('wheel-brakes.resume', array_merge(request()->all(), ['sort_ed' => 'asc'])) }}" class="btn btn-link p-0">
                                             <i class="fas fa-sort-amount-down"></i>
                                         </a>
-                                        <a href="{{ route('wheel-brakes.index', array_merge(request()->all(), ['sort_ed' => 'desc'])) }}" class="btn btn-link p-0">
+                                        <a href="{{ route('wheel-brakes.resume', array_merge(request()->all(), ['sort_ed' => 'desc'])) }}" class="btn btn-link p-0">
                                             <i class="fas fa-sort-amount-up"></i>
                                         </a>
                                     </th>
-                                    <th colspan="10">Last</th>
+                                    <th colspan="13">Last</th>
                                     <th rowspan="3">Submitted By</th>
                                 </tr>
                                 <tr>
                                     <th rowspan="2">Date</th>
-                                    <th colspan="2">FLH</th>
-                                    <th colspan="2">FRH</th>
-                                    <th colspan="2">RLH</th>
-                                    <th colspan="2">RRH</th>
-                                    <th rowspan="2">Picture</th>
+                                    <th colspan="3">FLH</th>
+                                    <th colspan="3">FRH</th>
+                                    <th colspan="3">RLH</th>
+                                    <th colspan="3">RRH</th>
                                 </tr>
                                 <tr>
                                     <th colspan="1">R.Gauge</th>
                                     <th colspan="1">T.Base</th>
+                                    <th colspan="1">Picture</th>
                                     <th colspan="1">R.Gauge</th>
                                     <th colspan="1">T.Base</th>
+                                    <th colspan="1">Picture</th>
                                     <th colspan="1">R.Gauge</th>
                                     <th colspan="1">T.Base</th>
+                                    <th colspan="1">Picture</th>
                                     <th colspan="1">R.Gauge</th>
                                     <th colspan="1">T.Base</th>
+                                    <th colspan="1">Picture</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -65,19 +78,51 @@
                                             {{ $wheelBrake->last_date ? \Carbon\Carbon::parse($wheelBrake->last_date)->diffInDays(now()) : 'N/A' }} days
                                         </td>
                                         <td>{{ $wheelBrake->last_date }}</td>
+                                        <!-- FLH -->
                                         <td>{{ $wheelBrake->flh_rgauge ?? '-' }}</td>
                                         <td>{{ $wheelBrake->flh_tbase ?? '-' }}</td>
+                                        <td>
+                                            @if ($wheelBrake->llh_picture)
+                                                <a href="#" data-toggle="modal" data-target="#flh{{ $wheelBrake->id }}">
+                                                    <img src="{{ asset('storage/' . $wheelBrake->llh_picture) }}" alt="FLH Picture" width="50" style="cursor: pointer;">
+                                                </a>
+                                            @else
+                                                <span>No Picture</span>
+                                            @endif
+                                        </td>
+                                        <!-- FRH -->
                                         <td>{{ $wheelBrake->frh_rgauge ?? '-' }}</td>
                                         <td>{{ $wheelBrake->frh_tbase ?? '-' }}</td>
+                                        <td>
+                                            @if ($wheelBrake->lrh_picture)
+                                                <a href="#" data-toggle="modal" data-target="#frh{{ $wheelBrake->id }}">
+                                                    <img src="{{ asset('storage/' . $wheelBrake->lrh_picture) }}" alt="FRH Picture" width="50" style="cursor: pointer;">
+                                                </a>
+                                            @else
+                                                <span>No Picture</span>
+                                            @endif
+                                        </td>
+                                        <!-- RLH -->
                                         <td>{{ $wheelBrake->rlh_rgauge ?? '-' }}</td>
                                         <td>{{ $wheelBrake->rlh_tbase ?? '-' }}</td>
+                                        <td>
+                                            @if ($wheelBrake->rlh_picture)
+                                                <a href="#" data-toggle="modal" data-target="#rlh{{ $wheelBrake->id }}">
+                                                    <img src="{{ asset('storage/' . $wheelBrake->rlh_picture) }}" alt="RLH Picture" width="50" style="cursor: pointer;">
+                                                </a>
+                                            @else
+                                                <span>No Picture</span>
+                                            @endif
+                                        </td>
+                                        <!-- RRH -->
                                         <td>{{ $wheelBrake->rrh_rgauge ?? '-' }}</td>
                                         <td>{{ $wheelBrake->rrh_tbase ?? '-' }}</td>
                                         <td>
                                             @if ($wheelBrake->picture)
                                                 <a href="#" data-toggle="modal" data-target="#pictureModal{{ $wheelBrake->id }}">
                                                     <img src="{{ asset('storage/' . $wheelBrake->picture) }}" alt="Picture" width="50" style="cursor: pointer;">
-                                                </a>                                                        @else
+                                                </a>
+                                            @else
                                                 <span>No Picture</span>
                                             @endif
                                         </td>
@@ -99,47 +144,15 @@
 
                 </div>
             </div>
-            {{-- <div class="card">
-                <div class="row">
-                    <!-- Section for Summary Cards -->
-                    @foreach ($ratingSummary as $rating => $count)
-                        <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="card shadow-sm">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Rating {{ $rating }}</h5>
-                                    <p class="card-text">
-                                        <span class="badge badge-primary" style="font-size: 1.2rem;">
-                                            {{ $count }} Items
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <!-- Section for Chart -->
-                <div class="row">
-                    @foreach ($charts as $unitModel => $chart)
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h4>{{ $unitModel }}</h4>
-                                </div>
-                                <div class="card-body">
-                                    {!! $chart->container() !!}
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div> --}}
         </div>
     </section>
 </div>
 
 @foreach ($approvedData as $wheelBrake)
-    @include('modals.picture_modal', ['image' => $wheelBrake->picture, 'modalId' => 'pictureModal' . $wheelBrake->id])
+@include('modals.picture_modal', ['image' => $wheelBrake->llh_picture, 'modalId' => 'flh' . $wheelBrake->id])
+@include('modals.picture_modal', ['image' => $wheelBrake->lrh_picture, 'modalId' => 'frh' . $wheelBrake->id])
+@include('modals.picture_modal', ['image' => $wheelBrake->rlh_picture, 'modalId' => 'rlh' . $wheelBrake->id])
+@include('modals.picture_modal', ['image' => $wheelBrake->picture, 'modalId' => 'pictureModal' . $wheelBrake->id])
 @endforeach
 
 {{-- @include('modals.filter_component') --}}

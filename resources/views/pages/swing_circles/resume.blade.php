@@ -16,6 +16,20 @@
         <div class="section-body">
             <div class="card">
                 <div class="card-body">
+                    <form method="GET" action="{{ route('swing_circles.resume') }}" class="mb-3">
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <input type="text" name="unit_model" class="form-control" placeholder="Search Unit Model" value="{{ request('unit_model') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="unit_code" class="form-control" placeholder="Search Unit Code" value="{{ request('unit_code') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                                <a href="{{ route('swing_circles.resume') }}" class="btn btn-secondary">Reset</a>
+                            </div>
+                        </div>
+                    </form>
                     <div class="table-responsive">
                         {{-- <h1 class="mb-4">Resume Swing Circles (Approved Only)</h1> --}}
                         <table class="table table-striped text-center align-middle custom-table">
@@ -26,10 +40,10 @@
                                     <th rowspan="3">Unit Code</th>
                                     <th rowspan="3">HM</th>
                                     <th rowspan="3">ED
-                                        <a href="{{ route('swing_circles.index', array_merge(request()->all(), ['sort_ed' => 'asc'])) }}" class="btn btn-link p-0">
+                                        <a href="{{ route('swing_circles.resume', array_merge(request()->all(), ['sort_ed' => 'asc'])) }}" class="btn btn-link p-0">
                                             <i class="fas fa-sort-amount-down"></i>
                                         </a>
-                                        <a href="{{ route('swing_circles.index', array_merge(request()->all(), ['sort_ed' => 'desc'])) }}" class="btn btn-link p-0">
+                                        <a href="{{ route('swing_circles.resume', array_merge(request()->all(), ['sort_ed' => 'desc'])) }}" class="btn btn-link p-0">
                                             <i class="fas fa-sort-amount-up"></i>
                                         </a>
                                     </th>

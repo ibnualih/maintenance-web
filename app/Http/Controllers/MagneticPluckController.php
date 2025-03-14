@@ -35,21 +35,48 @@ class MagneticPluckController extends Controller
 
         // Get unique ratings for dropdown
         $uniqueRatings = MagneticPluck::select('rating')->distinct()->pluck('rating');
-        // Get unique ratings for dropdown
+
+        // Get unique components for dropdown
         $uniqueComponents = MagneticPluck::select('component')->distinct()->pluck('component');
 
-        // Ambil data yang berstatus 'approved'
-        $approvedData = MagneticPluck::query()
-        ->with('user')
-        ->where('status', 'approved')
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        // Query untuk data 'approved'
+        $query = MagneticPluck::query()
+            ->with('user')
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc');
+
+        // Filter berdasarkan Unit Model
+        if ($request->filled('unit_model')) {
+            $query->where('unit_model', 'like', '%' . $request->unit_model . '%');
+        }
+
+        // Filter berdasarkan Unit Code
+        if ($request->filled('unit_code')) {
+            $query->where('unit_code', 'like', '%' . $request->unit_code . '%');
+        }
+
+       // Ambil data dari database
+       $approvedData = $query->paginate(10);
+
+       // Hitung `ED` secara dinamis
+       $approvedData->getCollection()->transform(function ($item) {
+           // ED dihitung sebagai selisih hari antara last_update dan hari ini
+           $item->ed = $item->last_update ? now()->diffInDays($item->last_update) : null;
+           return $item;
+       });
+
+       // Sorting secara manual berdasarkan `ED`
+       if ($request->has('sort_ed') && in_array($request->sort_ed, ['asc', 'desc'])) {
+           $approvedData = $approvedData->setCollection(
+               $approvedData->getCollection()->sortBy('ed', SORT_REGULAR, $request->sort_ed === 'desc')
+           );
+       }
 
         // Hitung nomor awal untuk halaman saat ini
         $startNumber = ($approvedData->currentPage() - 1) * $approvedData->perPage();
 
-        // Ambil data MagneticPluck
-        $data = MagneticPluck::select('unit_model', 'unit_code', 'rating')->get();
+        // Ambil data MagneticPluck sesuai filter
+        $data = $query->select('unit_model', 'unit_code', 'rating')->get();
 
         // Hitung total data berdasarkan rating
         $ratingSummary = $data->groupBy('rating')->map(fn($item) => $item->count());
@@ -101,9 +128,16 @@ class MagneticPluckController extends Controller
             $charts[$unitModel] = $chart;
         }
 
-        return view('pages.magnetic_plucks.resume', compact('ratingSummary', 'charts', 'approvedData', 'startNumber', 'uniqueComponents', 'currentRouteName', 'uniqueRatings'));
+        return view('pages.magnetic_plucks.resume', compact(
+            'ratingSummary',
+            'charts',
+            'approvedData',
+            'startNumber',
+            'uniqueComponents',
+            'currentRouteName',
+            'uniqueRatings'
+        ));
     }
-
 
 
     public function getUnitCodes($unitModel)

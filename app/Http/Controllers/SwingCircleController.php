@@ -28,63 +28,60 @@ class SwingCircleController extends Controller
         return redirect()->back()->with('success', 'Data berhasil ditolak.');
     }
 
-    public function resume()
+    public function resume(Request $request)
     {
         $currentRouteName = \Route::currentRouteName();
 
         // Ambil data yang berstatus 'approved'
-        $approvedData = SwingCircle::query()
-        ->with('user')
-        ->where('status', 'approved')
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        $query = SwingCircle::query()
+            ->with('user')
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc');
+
+        // Filter berdasarkan Unit Model
+        if ($request->filled('unit_model')) {
+            $query->where('unit_model', 'like', '%' . $request->unit_model . '%');
+        }
+
+        // Filter berdasarkan Unit Code
+        if ($request->filled('unit_code')) {
+            $query->where('unit_code', 'like', '%' . $request->unit_code . '%');
+        }
+
+        // Ambil data dari database
+        $approvedData = $query->paginate(10);
+
+        // Hitung `ED` secara dinamis
+        $approvedData->getCollection()->transform(function ($item) {
+            // ED dihitung sebagai selisih hari antara last_update dan hari ini
+            $item->ed = $item->last_update ? now()->diffInDays($item->last_update) : null;
+            return $item;
+        });
+
+        // Sorting secara manual berdasarkan `ED`
+        if ($request->has('sort_ed') && in_array($request->sort_ed, ['asc', 'desc'])) {
+            $approvedData = $approvedData->setCollection(
+                $approvedData->getCollection()->sortBy('ed', SORT_REGULAR, $request->sort_ed === 'desc')
+            );
+        }
 
         // Hitung nomor awal untuk halaman saat ini
         $startNumber = ($approvedData->currentPage() - 1) * $approvedData->perPage();
 
-        // // Ambil data SwingCircle
-        // $data = SwingCircle::select('unit_model', 'unit_code')->get();
+        // Ambil unit_model dan unit_code unik untuk filter dropdown
+        $uniqueUnitModels = SwingCircle::select('unit_model')->distinct()->pluck('unit_model');
+        $uniqueUnitCodes = SwingCircle::select('unit_code')->distinct()->pluck('unit_code');
 
-        // // Kelompokkan data berdasarkan unit_model
-        // $groupedData = $data->groupBy('unit_model');
-
-        // // Membuat bar chart untuk setiap unit_model
-        // $charts = [];
-        // foreach ($groupedData as $unitModel => $units) {
-        //     // Labels: unit_code
-        //     $labels = $units->pluck('unit_code')->unique()->toArray();
-
-        //     // Data untuk setiap rating
-        //     $chartData = [];
-        //     foreach ($ratings as $rating) {
-        //         $chartData[] = $labels
-        //             ? array_map(
-        //                 fn($codeUnit) => $units->where('unit_code', $codeUnit)->where('rating', $rating)->count(),
-        //                 $labels
-        //             )
-        //             : [];
-        //     }
-
-        //     // Buat chart
-        //     $chart = (new LarapexChart)
-        //         ->barChart()
-        //         ->setTitle("Rating Distribution for $unitModel")
-        //         ->setSubtitle("Ratings: " . implode(', ', $ratings))
-        //         ->setXAxis($labels) // Labels berupa code_unit
-        //         ->setColors(['#FF5733', '#FFC300', '#DAF7A6', '#C70039', '#900C3F'])
-        //         ->setDataset(
-        //             array_map(
-        //                 fn($rating, $data) => ['name' => $rating, 'data' => $data],
-        //                 $ratings,
-        //                 $chartData
-        //             )
-        //         );
-
-        //     $charts[$unitModel] = $chart;
-        // }
-
-        return view('pages.swing_circles.resume', compact( 'approvedData','currentRouteName', 'startNumber'));
+        return view('pages.swing_circles.resume', compact(
+            'approvedData',
+            'startNumber',
+            'currentRouteName',
+            'uniqueUnitModels',
+            'uniqueUnitCodes'
+        ));
     }
+
+
 
     public function getUnitCodes($unitModel)
     {

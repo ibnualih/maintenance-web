@@ -7,7 +7,6 @@ use App\Models\CuttingFilter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use ArielMejiaDev\LarapexCharts\LarapexChart;
-// use ArielMejiaDev\LarapexCharts\Facades\LarapexChart;
 
 class CuttingFilterController extends Controller
 {
@@ -29,24 +28,51 @@ class CuttingFilterController extends Controller
         return redirect()->back()->with('success', 'Data berhasil ditolak.');
     }
 
-    public function resume()
+    public function resume(Request $request)
     {
         $currentRouteName = \Route::currentRouteName();
 
         // Get unique ratings for dropdown
         $uniqueRatings = CuttingFilter::select('rating')->distinct()->pluck('rating');
-        // Get unique ratings for dropdown
+        // Get unique components for dropdown
         $uniqueComponents = CuttingFilter::select('component')->distinct()->pluck('component');
 
-        // Ambil data yang berstatus 'approved'
-        $approvedData = CuttingFilter::query()
-        ->with('user')
-        ->where('status', 'approved')
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        // Ambil data yang berstatus 'approved' dan lakukan filter jika ada request
+        $approvedDataQuery = CuttingFilter::query()
+            ->with('user')
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc');
+
+        // Filter berdasarkan Unit Model
+        if ($request->filled('unit_model')) {
+            $approvedDataQuery->where('unit_model', 'like', '%' . $request->unit_model . '%');
+        }
+
+        // Filter berdasarkan Unit Code
+        if ($request->filled('unit_code')) {
+            $approvedDataQuery->where('unit_code', 'like', '%' . $request->unit_code . '%');
+        }
+
+        // Ambil data dari database
+        $approvedData = $approvedDataQuery->paginate(10);
+
+        // Hitung `ED` secara dinamis
+        $approvedData->getCollection()->transform(function ($item) {
+            // ED dihitung sebagai selisih hari antara last_update dan hari ini
+            $item->ed = $item->last_update ? now()->diffInDays($item->last_update) : null;
+            return $item;
+        });
+
+        // Sorting secara manual berdasarkan `ED`
+        if ($request->has('sort_ed') && in_array($request->sort_ed, ['asc', 'desc'])) {
+            $approvedData = $approvedData->setCollection(
+                $approvedData->getCollection()->sortBy('ed', SORT_REGULAR, $request->sort_ed === 'desc')
+            );
+        }
 
         // Hitung nomor awal untuk halaman saat ini
         $startNumber = ($approvedData->currentPage() - 1) * $approvedData->perPage();
+
         // Ambil data CuttingFilter
         $data = CuttingFilter::select('unit_model', 'unit_code', 'rating')->get();
 
@@ -68,12 +94,15 @@ class CuttingFilterController extends Controller
             // Data untuk setiap rating
             $chartData = [];
             foreach ($ratings as $rating) {
-                $chartData[] = $labels
-                    ? array_map(
-                        fn($codeUnit) => $units->where('unit_code', $codeUnit)->where('rating', $rating)->count(),
-                        $labels
-                    )
-                    : [];
+                $chartData[] = array_map(
+                    fn($codeUnit) => $units->where('unit_code', $codeUnit)->where('rating', $rating)->count(),
+                    $labels
+                );
+            }
+
+            // Jika tidak ada data untuk chart, skip iterasi
+            if (empty($labels) || empty($chartData)) {
+                continue;
             }
 
             // Buat chart
@@ -81,21 +110,22 @@ class CuttingFilterController extends Controller
                 ->barChart()
                 ->setTitle("Rating Distribution for $unitModel")
                 ->setSubtitle("Ratings: " . implode(', ', $ratings))
-                ->setXAxis($labels) // Labels berupa code_unit
+                ->setXAxis($labels) // Labels berupa unit_code
                 ->setColors(['#FF5733', '#FFC300', '#DAF7A6', '#C70039', '#900C3F'])
-                ->setDataset(
-                    array_map(
-                        fn($rating, $data) => ['name' => $rating, 'data' => $data],
-                        $ratings,
-                        $chartData
-                    )
-                );
+                ->setDataset(array_map(fn($index) => [
+                    'name' => $ratings[$index],
+                    'data' => $chartData[$index] ?? [],
+                ], array_keys($ratings)));
 
             $charts[$unitModel] = $chart;
         }
 
-        return view('pages.cutting_filters.resume', compact('ratingSummary', 'charts', 'approvedData', 'uniqueRatings', 'uniqueComponents', 'currentRouteName', 'startNumber'));
+        return view('pages.cutting_filters.resume', compact(
+            'ratingSummary', 'charts', 'approvedData', 'uniqueRatings',
+            'uniqueComponents', 'currentRouteName', 'startNumber'
+        ));
     }
+
 
     public function getUnitCodes($unitModel)
     {

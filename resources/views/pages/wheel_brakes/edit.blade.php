@@ -62,6 +62,13 @@
                                         <label>FLH T.Base</label>
                                         <input type="number" step="0.01" name="flh_tbase" class="form-control" value="{{ $wheelBrake->flh_tbase }}">
                                     </div>
+                                    <div class="form-group">
+                                        <label>Picture</label>
+                                        <input type="file" name="picture" class="form-control-file">
+                                        @if ($wheelBrake->llh_picture)
+                                            <p>Current Picture: <a href="{{ asset('storage/' . $wheelBrake->llh_picture) }}" target="_blank">View</a></p>
+                                        @endif
+                                    </div>
 
                                     <!-- FRH -->
                                     <div class="form-group">
@@ -71,6 +78,13 @@
                                     <div class="form-group">
                                         <label>FRH T.Base</label>
                                         <input type="number" step="0.01" name="frh_tbase" class="form-control" value="{{ $wheelBrake->frh_tbase }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>FRH Picture</label>
+                                        <input type="file" name="picture" class="form-control-file">
+                                        @if ($wheelBrake->lrh_picture)
+                                            <p>Current Picture: <a href="{{ asset('storage/' . $wheelBrake->lrh_picture) }}" target="_blank">View</a></p>
+                                        @endif
                                     </div>
 
                                     <!-- RLH -->
@@ -82,6 +96,13 @@
                                         <label>RLH T.Base</label>
                                         <input type="number" step="0.01" name="rlh_tbase" class="form-control" value="{{ $wheelBrake->rlh_tbase }}">
                                     </div>
+                                    <div class="form-group">
+                                        <label>RLH Picture</label>
+                                        <input type="file" name="picture" class="form-control-file">
+                                        @if ($wheelBrake->rlh_picture)
+                                            <p>Current Picture: <a href="{{ asset('storage/' . $wheelBrake->rlh_picture) }}" target="_blank">View</a></p>
+                                        @endif
+                                    </div>
 
                                     <!-- RRH -->
                                     <div class="form-group">
@@ -92,15 +113,15 @@
                                         <label>RRH T.Base</label>
                                         <input type="number" step="0.01" name="rrh_tbase" class="form-control" value="{{ $wheelBrake->rrh_tbase }}">
                                     </div>
-
-                                    <!-- Picture -->
                                     <div class="form-group">
-                                        <label>Picture</label>
+                                        <label>RRH Picture</label>
                                         <input type="file" name="picture" class="form-control-file">
                                         @if ($wheelBrake->picture)
                                             <p>Current Picture: <a href="{{ asset('storage/' . $wheelBrake->picture) }}" target="_blank">View</a></p>
                                         @endif
                                     </div>
+
+                                    <!-- Picture -->
 
                                     <!-- Submit -->
                                     <button type="submit" class="btn btn-primary">Update</button>

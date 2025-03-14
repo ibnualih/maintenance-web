@@ -59,6 +59,10 @@
                                         <label>FLH T.Base</label>
                                         <input type="number" step="0.01" name="flh_tbase" class="form-control" value="{{ old('flh_tbase') }}">
                                     </div>
+                                    <div class="form-group">
+                                        <label for="llh_picture">FLH Picture</label>
+                                        <input type="file" class="form-control-file" name="llh_picture">
+                                    </div>
 
                                     <!-- FRH -->
                                     <div class="form-group">
@@ -68,6 +72,10 @@
                                     <div class="form-group">
                                         <label>FRH T.Base</label>
                                         <input type="number" step="0.01" name="frh_tbase" class="form-control" value="{{ old('frh_tbase') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="lrh_picture">FRH Picture</label>
+                                        <input type="file" class="form-control-file" name="lrh_picture">
                                     </div>
 
                                     <!-- RLH -->
@@ -79,6 +87,10 @@
                                         <label>RLH T.Base</label>
                                         <input type="number" step="0.01" name="rlh_tbase" class="form-control" value="{{ old('rlh_tbase') }}">
                                     </div>
+                                    <div class="form-group">
+                                        <label for="rlh_picture">RLH Picture</label>
+                                        <input type="file" class="form-control-file" name="rlh_picture">
+                                    </div>
 
                                     <!-- RRH -->
                                     <div class="form-group">
@@ -89,12 +101,13 @@
                                         <label>RRH T.Base</label>
                                         <input type="number" step="0.01" name="rrh_tbase" class="form-control" value="{{ old('rrh_tbase') }}">
                                     </div>
-
-                                    <!-- Picture -->
                                     <div class="form-group">
-                                        <label>Picture</label>
+                                        <label>RRH Picture</label>
                                         <input type="file" name="picture" class="form-control-file">
                                     </div>
+
+                                    <!-- Picture -->
+
 
                                     <!-- Submit -->
                                     <button type="submit" class="btn btn-primary">Save</button>

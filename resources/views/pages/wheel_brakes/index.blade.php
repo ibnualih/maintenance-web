@@ -56,7 +56,7 @@
                                                         <i class="fas fa-sort-amount-up"></i>
                                                     </a>
                                                 </th>
-                                                <th colspan="10">Last</th>
+                                                <th colspan="13">Last</th>
                                                 <th rowspan="3">Status
                                                     @role(['admin', 'supervisor'])
                                                         <button type="button" class="btn btn-link p-0" data-toggle="modal" data-target="#filterStatusModal">
@@ -71,21 +71,24 @@
                                             </tr>
                                             <tr>
                                                 <th rowspan="2">Date</th>
-                                                <th colspan="2">FLH</th>
-                                                <th colspan="2">FRH</th>
-                                                <th colspan="2">RLH</th>
-                                                <th colspan="2">RRH</th>
-                                                <th rowspan="2">Picture</th>
+                                                <th colspan="3">FLH</th>
+                                                <th colspan="3">FRH</th>
+                                                <th colspan="3">RLH</th>
+                                                <th colspan="3">RRH</th>
                                             </tr>
                                             <tr>
                                                 <th colspan="1">R.Gauge</th>
                                                 <th colspan="1">T.Base</th>
+                                                <th colspan="1">Picture</th>
                                                 <th colspan="1">R.Gauge</th>
                                                 <th colspan="1">T.Base</th>
+                                                <th colspan="1">Picture</th>
                                                 <th colspan="1">R.Gauge</th>
                                                 <th colspan="1">T.Base</th>
+                                                <th colspan="1">Picture</th>
                                                 <th colspan="1">R.Gauge</th>
                                                 <th colspan="1">T.Base</th>
+                                                <th colspan="1">Picture</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -98,19 +101,51 @@
                                                         {{ $wheelBrake->last_date ? \Carbon\Carbon::parse($wheelBrake->last_date)->diffInDays(now()) : 'N/A' }} days
                                                     </td>
                                                     <td>{{ $wheelBrake->last_date }}</td>
+                                                    <!-- FLH -->
                                                     <td>{{ $wheelBrake->flh_rgauge ?? '-' }}</td>
                                                     <td>{{ $wheelBrake->flh_tbase ?? '-' }}</td>
+                                                    <td>
+                                                        @if ($wheelBrake->llh_picture)
+                                                            <a href="#" data-toggle="modal" data-target="#flh{{ $wheelBrake->id }}">
+                                                                <img src="{{ asset('storage/' . $wheelBrake->llh_picture) }}" alt="FLH Picture" width="50" style="cursor: pointer;">
+                                                            </a>
+                                                        @else
+                                                            <span>No Picture</span>
+                                                        @endif
+                                                    </td>
+                                                    <!-- FRH -->
                                                     <td>{{ $wheelBrake->frh_rgauge ?? '-' }}</td>
                                                     <td>{{ $wheelBrake->frh_tbase ?? '-' }}</td>
+                                                    <td>
+                                                        @if ($wheelBrake->lrh_picture)
+                                                            <a href="#" data-toggle="modal" data-target="#frh{{ $wheelBrake->id }}">
+                                                                <img src="{{ asset('storage/' . $wheelBrake->lrh_picture) }}" alt="FRH Picture" width="50" style="cursor: pointer;">
+                                                            </a>
+                                                        @else
+                                                            <span>No Picture</span>
+                                                        @endif
+                                                    </td>
+                                                    <!-- RLH -->
                                                     <td>{{ $wheelBrake->rlh_rgauge ?? '-' }}</td>
                                                     <td>{{ $wheelBrake->rlh_tbase ?? '-' }}</td>
+                                                    <td>
+                                                        @if ($wheelBrake->rlh_picture)
+                                                            <a href="#" data-toggle="modal" data-target="#rlh{{ $wheelBrake->id }}">
+                                                                <img src="{{ asset('storage/' . $wheelBrake->rlh_picture) }}" alt="RLH Picture" width="50" style="cursor: pointer;">
+                                                            </a>
+                                                        @else
+                                                            <span>No Picture</span>
+                                                        @endif
+                                                    </td>
+                                                    <!-- RRH -->
                                                     <td>{{ $wheelBrake->rrh_rgauge ?? '-' }}</td>
                                                     <td>{{ $wheelBrake->rrh_tbase ?? '-' }}</td>
                                                     <td>
                                                         @if ($wheelBrake->picture)
                                                             <a href="#" data-toggle="modal" data-target="#pictureModal{{ $wheelBrake->id }}">
                                                                 <img src="{{ asset('storage/' . $wheelBrake->picture) }}" alt="Picture" width="50" style="cursor: pointer;">
-                                                            </a>                                                        @else
+                                                            </a>
+                                                        @else
                                                             <span>No Picture</span>
                                                         @endif
                                                     </td>
@@ -152,7 +187,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="17" class="text-center">No Data Found</td>
+                                                    <td colspan="20" class="text-center">No Data Found</td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -169,8 +204,13 @@
         </section>
     </div>
 @foreach ($wheelBrakes as $wheelBrake)
+    @include('modals.picture_modal', ['image' => $wheelBrake->llh_picture, 'modalId' => 'flh' . $wheelBrake->id])
+    @include('modals.picture_modal', ['image' => $wheelBrake->lrh_picture, 'modalId' => 'frh' . $wheelBrake->id])
+    @include('modals.picture_modal', ['image' => $wheelBrake->rlh_picture, 'modalId' => 'rlh' . $wheelBrake->id])
     @include('modals.picture_modal', ['image' => $wheelBrake->picture, 'modalId' => 'pictureModal' . $wheelBrake->id])
 @endforeach
+
+@include('modals.filter_status', ['modalId' => 'filterStatusModal'])
 
 @endsection
 

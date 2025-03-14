@@ -15,10 +15,24 @@
 
         <div class="section-body">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                {{-- <div class="card-header d-flex justify-content-between align-items-center">
                     <a href="{{ route('cutting_filters.create') }}" class="btn btn-primary">New Cutting Filter</a>
-                </div>
+                </div> --}}
                 <div class="card-body">
+                    <form method="GET" action="{{ route('cutting_filters.resume') }}" class="mb-3">
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <input type="text" name="unit_model" class="form-control" placeholder="Search Unit Model" value="{{ request('unit_model') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="unit_code" class="form-control" placeholder="Search Unit Code" value="{{ request('unit_code') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                                <a href="{{ route('cutting_filters.resume') }}" class="btn btn-secondary">Reset</a>
+                            </div>
+                        </div>
+                    </form>
                     <div class="table-responsive">
                         {{-- <h1 class="mb-4">Resume Cutting Filters (Approved Only)</h1> --}}
                         <table class="table table-bordered">
@@ -29,10 +43,10 @@
                                     <th>Unit Code</th>
                                     <th>HM</th>
                                     <th>ED
-                                        <a href="{{ route('cutting_filters.index', array_merge(request()->all(), ['sort_ed' => 'asc'])) }}" class="btn btn-link p-0">
+                                        <a href="{{ route('cutting_filters.resume', array_merge(request()->all(), ['sort_ed' => 'asc'])) }}" class="btn btn-link p-0">
                                             <i class="fas fa-sort-amount-down"></i>
                                         </a>
-                                        <a href="{{ route('cutting_filters.index', array_merge(request()->all(), ['sort_ed' => 'desc'])) }}" class="btn btn-link p-0">
+                                        <a href="{{ route('cutting_filters.resume', array_merge(request()->all(), ['sort_ed' => 'desc'])) }}" class="btn btn-link p-0">
                                             <i class="fas fa-sort-amount-up"></i>
                                         </a>
                                     </th>

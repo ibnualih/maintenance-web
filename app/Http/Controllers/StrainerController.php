@@ -29,20 +29,46 @@ class StrainerController extends Controller
         return redirect()->back()->with('success', 'Data berhasil ditolak.');
     }
 
-    public function resume()
+    public function resume(Request $request)
     {
         $currentRouteName = \Route::currentRouteName();
-        // Get unique ratings for dropdown
+
+        // Get unique ratings and components for dropdown
         $uniqueRatings = Strainer::select('rating')->distinct()->pluck('rating');
-        // Get unique ratings for dropdown
         $uniqueComponents = Strainer::select('component')->distinct()->pluck('component');
 
         // Ambil data yang berstatus 'approved'
-        $approvedData = Strainer::query()
-        ->with('user')
-        ->where('status', 'approved')
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        $query = Strainer::query()
+            ->with('user')
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc');
+
+        // Filter berdasarkan Unit Model
+        if ($request->filled('unit_model')) {
+            $query->where('unit_model', 'like', '%' . $request->unit_model . '%');
+        }
+
+        // Filter berdasarkan Unit Code
+        if ($request->filled('unit_code')) {
+            $query->where('unit_code', 'like', '%' . $request->unit_code . '%');
+        }
+
+        // Ambil data dari database
+        $approvedData = $query->paginate(10);
+
+        // Hitung `ED` secara dinamis
+        $approvedData->getCollection()->transform(function ($item) {
+            // ED dihitung sebagai selisih hari antara last_update dan hari ini
+            $item->ed = $item->last_update ? now()->diffInDays($item->last_update) : null;
+            return $item;
+        });
+
+        // Sorting secara manual berdasarkan `ED`
+        if ($request->has('sort_ed') && in_array($request->sort_ed, ['asc', 'desc'])) {
+            $approvedData = $approvedData->setCollection(
+                $approvedData->getCollection()->sortBy('ed', SORT_REGULAR, $request->sort_ed === 'desc')
+            );
+        }
 
         // Hitung nomor awal untuk halaman saat ini
         $startNumber = ($approvedData->currentPage() - 1) * $approvedData->perPage();
@@ -54,7 +80,7 @@ class StrainerController extends Controller
         $ratingSummary = $data->groupBy('rating')->map(fn($item) => $item->count());
 
         // Ambil daftar rating unik dari kolom 'rating'
-        $ratings = Strainer::select('rating')->distinct()->pluck('rating')->toArray();
+        $ratings = $uniqueRatings->toArray();
 
         // Kelompokkan data berdasarkan unit_model
         $groupedData = $data->groupBy('unit_model');
@@ -100,8 +126,12 @@ class StrainerController extends Controller
             $charts[$unitModel] = $chart;
         }
 
-        return view('pages.strainer.resume', compact('ratingSummary', 'charts', 'approvedData', 'startNumber', 'uniqueComponents', 'currentRouteName', 'uniqueRatings'));
+        return view('pages.strainer.resume', compact(
+            'ratingSummary', 'charts', 'approvedData', 'startNumber',
+            'uniqueComponents', 'currentRouteName', 'uniqueRatings'
+        ));
     }
+
 
     public function getUnitCodes($unitModel)
     {

@@ -29,7 +29,7 @@ return new class extends Migration
             $table->float('rrh_tbase')->nullable();
             $table->string('picture')->nullable();
             $table->string('status')->default('pending');
-            // // Resume
+            // Resume
             // $table->date('resume_date')->nullable();
             // $table->text('remark')->nullable();
             // $table->float('resume_flh_rgauge')->nullable();

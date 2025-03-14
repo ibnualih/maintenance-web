@@ -33,70 +33,49 @@ class WheelBrakeController extends Controller
         $currentRouteName = \Route::currentRouteName();
 
         // Ambil data yang berstatus 'approved'
-        $approvedData = WheelBrake::query()
-        ->with('user')
-        ->where('status', 'approved')
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        $query = WheelBrake::query()
+            ->with('user')
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc');
+
+
+        // Filter berdasarkan Unit Code
+        if ($request->filled('unit_code')) {
+            $query->where('unit_code', 'like', '%' . $request->unit_code . '%');
+        }
+
+        // Ambil data dari database
+        $approvedData = $query->paginate(10);
+
+        // Hitung `ED` secara dinamis
+        $approvedData->getCollection()->transform(function ($item) {
+            // ED dihitung sebagai selisih hari antara last_update dan hari ini
+            $item->ed = $item->last_date ? now()->diffInDays($item->last_date) : null;
+            return $item;
+        });
+
+        // Sorting secara manual berdasarkan `ED`
+        if ($request->has('sort_ed') && in_array($request->sort_ed, ['asc', 'desc'])) {
+            $approvedData = $approvedData->setCollection(
+                $approvedData->getCollection()->sortBy('ed', SORT_REGULAR, $request->sort_ed === 'desc')
+            );
+        }
 
         // Hitung nomor awal untuk halaman saat ini
         $startNumber = ($approvedData->currentPage() - 1) * $approvedData->perPage();
 
-        // // Ambil data MagneticPluck
-        // $data = WheelBrake::select('unit_model', 'unit_code', 'rating')->get();
+        // Ambil daftar unit_model dan unit_code unik untuk filter dropdown
+        // $uniqueUnitModels = WheelBrake::select('unit_model')->distinct()->pluck('unit_model');
+        $uniqueUnitCodes = WheelBrake::select('unit_code')->distinct()->pluck('unit_code');
 
-        // // Hitung total data berdasarkan rating
-        // $ratingSummary = $data->groupBy('rating')->map(fn($item) => $item->count());
-
-        // // Ambil daftar rating unik dari kolom 'rating'
-        // $ratings = MagneticPluck::select('rating')->distinct()->pluck('rating')->toArray();
-
-        // // Kelompokkan data berdasarkan unit_model
-        // $groupedData = $data->groupBy('unit_model');
-
-        // // Membuat bar chart untuk setiap unit_model
-        // $charts = [];
-        // foreach ($groupedData as $unitModel => $units) {
-        //     // Labels: unit_code
-        //     $labels = $units->pluck('unit_code')->unique()->toArray();
-
-        //     // Data untuk setiap rating
-        //     $chartData = [];
-        //     foreach ($ratings as $rating) {
-        //         $chartData[] = array_map(
-        //             fn($codeUnit) => $units->where('unit_code', $codeUnit)->where('rating', $rating)->count() ?: 0,
-        //             $labels
-        //         );
-        //     }
-
-        //     // Jika tidak ada data untuk chart, skip iterasi
-        //     if (empty($labels) || empty($chartData)) {
-        //         continue;
-        //     }
-
-        //     // Membuat dataset untuk LarapexChart
-        //     $dataset = [];
-        //     foreach ($ratings as $index => $rating) {
-        //         $dataset[] = [
-        //             'name' => $rating,
-        //             'data' => $chartData[$index] ?? [],
-        //         ];
-        //     }
-
-        //     // Buat chart
-        //     $chart = (new LarapexChart)
-        //         ->barChart()
-        //         ->setTitle("Rating Distribution for $unitModel")
-        //         ->setSubtitle("Ratings: " . implode(', ', $ratings))
-        //         ->setXAxis($labels) // Labels berupa unit_code
-        //         ->setColors(['#FF5733', '#FFC300', '#DAF7A6', '#C70039', '#900C3F'])
-        //         ->setDataset($dataset);
-
-        //     $charts[$unitModel] = $chart;
-        // }
-
-        return view('pages.wheel_brakes.resume', compact( 'approvedData', 'startNumber',  'currentRouteName'));
+        return view('pages.wheel_brakes.resume', compact(
+            'approvedData',
+            'startNumber',
+            'currentRouteName',
+            'uniqueUnitCodes'
+        ));
     }
+
 
     public function index(Request $request)
     {
@@ -152,6 +131,9 @@ class WheelBrakeController extends Controller
             'rrh_rgauge' => 'required|numeric',
             'rrh_tbase' => 'required|numeric',
             'picture' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'rlh_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'lrh_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'llh_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $data['user_id'] = auth()->id();
@@ -159,6 +141,15 @@ class WheelBrakeController extends Controller
 
         if ($request->hasFile('picture')) {
             $data['picture'] = $request->file('picture')->store('pictures', 'public');
+        }
+        if ($request->hasFile('rlh_picture')) {
+            $data['rlh_picture'] = $request->file('rlh_picture')->store('pictures', 'public');
+        }
+        if ($request->hasFile('lrh_picture')) {
+            $data['lrh_picture'] = $request->file('lrh_picture')->store('pictures', 'public');
+        }
+        if ($request->hasFile('llh_picture')) {
+            $data['llh_picture'] = $request->file('llh_picture')->store('pictures', 'public');
         }
 
         WheelBrake::create($data);
@@ -188,10 +179,22 @@ class WheelBrakeController extends Controller
             'rrh_rgauge' => 'nullable|numeric',
             'rrh_tbase' => 'nullable|numeric',
             'picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'rlh_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'lrh_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'llh_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         if ($request->hasFile('picture')) {
             $data['picture'] = $request->file('picture')->store('pictures', 'public');
+        }
+        if ($request->hasFile('rlh_picture')) {
+            $data['rlh_picture'] = $request->file('rlh_picture')->store('pictures', 'public');
+        }
+        if ($request->hasFile('lrh_picture')) {
+            $data['lrh_picture'] = $request->file('lrh_picture')->store('pictures', 'public');
+        }
+        if ($request->hasFile('llh_picture')) {
+            $data['llh_picture'] = $request->file('llh_picture')->store('pictures', 'public');
         }
 
         $wheelBrake->update($data);
